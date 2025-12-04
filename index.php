@@ -619,11 +619,9 @@
                             <td><?php echo $res["heure_cours"];?></td>
                             <td><?php echo $res["duree_cours"];?></td>
                             <td><?php echo $res["max_participants"];?></td>
-                            <td>
-                                <div class="action-btns">
-                                    <button class="btn-edit"><i class="fas fa-edit"></i> Modifier</button>
-                                    <button class="btn-delete"><i class="fas fa-trash"></i> Supprimer</button>
-                                </div>
+                            <td class="action-btns">
+                                    <a href="edit_cours.php?edit_cours_id =<?= $res["id_cours"]?>" class="btn-edit"><i class="fas fa-edit"></i> Modifier</a>
+                                    <a href="delete_cours.php?delete_cours_id =<?= $res["id_cours"]?>" class="btn-delete"><i class="fas fa-trash"></i> Supprimer</a>
                             </td>
                         </tr>
                         <?php endforeach;?>
@@ -696,8 +694,8 @@
                             <td><?= $res["etat_equipements"];?></td>
                             <td>
                                 <div class="action-btns">
-                                    <button class="btn-edit"><i class="fas fa-edit"></i> Modifier</button>
-                                    <button class="btn-delete"><i class="fas fa-trash"></i> Supprimer</button>
+                                    <a href="edit_equipements.php?edit_equipements_id =<?= $res["id_equipements"]?>" class="btn-edit"><i class="fas fa-edit"></i> Modifier</a>
+                                    <a href="delete_equipements.php?delete_equipements_id =<?= $res["id_equipements"]?>" class="btn-delete"><i class="fas fa-trash"></i> Supprimer</a>
                                 </div>
                             </td>
                         </tr>
@@ -868,11 +866,11 @@
             document.querySelector('#courseForm .btn-primary').textContent = 'Ajouter le Cours';
         } */
 
-        /* function resetEquipmentForm() {
+        function resetEquipmentForm() {
             document.getElementById('equipmentForm').reset();
             editingEquipmentId = null;
             document.querySelector('#equipmentForm .btn-primary').textContent = "Ajouter l'Équipement";
-        } */
+        }
 
         /* function updateDashboard() {
             document.getElementById('totalCourses').textContent = courses.length;
