@@ -1,19 +1,4 @@
-<?php 
-    ini_set('display_errors', 1);
-    ini_set('display_startup_errors', 1);
-    error_reporting(E_ALL);
-    require "connect.php";
-    $result_cours = $connect->query("select * from cours");
-    $data_cours = $result_cours->fetch_assoc();
-    $result_equipements = $connect->query("select * from equipements");
-    $data_equipements = $result_equipements->fetch_assoc();
-    $count_cours = $connect->query("select count(id_cours) from cours");
-    $data_count_cours = $count_cours->fetch_column();
-    $count_equipements = $connect->query("select count(id_equipements) from equipements");
-    $data_count_equipements = $count_equipements->fetch_column();
-    $participants_totaux = $connect->query("select sum(max_participants) from cours");
-    $data_participants = $participants_totaux->fetch_column();
-?>
+
 
 
 
