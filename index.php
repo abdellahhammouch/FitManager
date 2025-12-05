@@ -559,10 +559,7 @@
                     <?= $edit_cours_id ? 'Modifier le Cours' : 'Ajouter un Nouveau Cours' ?>
                 </div>
                 <form id="courseForm" action="<?= $edit_cours_id ? 'edit.php' : 'form_handling1.php' ?>" method="POST">
-                <?php if ($edit_cours_id): ?>
                     <input type="hidden" name="id_cours" value="<?= $edit_cours_id ?>">
-                <?php endif; ?>
-
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Nom du Cours *</label>
