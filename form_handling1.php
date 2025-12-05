@@ -15,8 +15,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $max_participants = $_POST["max_participants"];
 
     $result = $connect->query("
-        INSERT INTO cours (nom_cours, categories_cours, date_cours, heure_cours, duree_cours, max_participants)
-        VALUES ('$nom_cours', '$categories_cours', '$date_cours', '$heure_cours', '$duree_cours', $max_participants)
+        insert into cours (nom_cours, categories_cours, date_cours, heure_cours, duree_cours, max_participants)
+        values ('$nom_cours', '$categories_cours', '$date_cours', '$heure_cours', '$duree_cours', $max_participants)
     ");
 
     if (!$result) {
@@ -24,7 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         exit;
     }
 
-    header("Location: index.php"); // remove space before :
+    header("Location: index.php");
     exit;
 }
 ?>

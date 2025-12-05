@@ -2,6 +2,7 @@
     ini_set('display_errors', 1);
     ini_set('display_startup_errors', 1);
     error_reporting(E_ALL);
+    include "edit.php";
     require "connect.php";
     $result_cours = $connect->query("select * from cours");
     $data_cours = $result_cours->fetch_assoc();
@@ -555,46 +556,56 @@
             <div class="form-section">
                 <div class="form-title">
                     <i class="fas fa-plus-circle"></i>
-                    Ajouter un Nouveau Cours
+                    <?= $edit_cours_id ? 'Modifier le Cours' : 'Ajouter un Nouveau Cours' ?>
                 </div>
-                <form id="courseForm" action="form_handling1.php" method="POST">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Nom du Cours *</label>
-                            <input type="text" name="nom_cours" id="courseName" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Catégorie *</label>
-                            <select id="courseCategory" name="categories_cours" required>
-                                <option value="">Sélectionner...</option>
-                                <option value="Yoga">Yoga</option>
-                                <option value="Musculation">Musculation</option>
-                                <option value="Cardio">Cardio</option>
-                                <option value="Pilates">Pilates</option>
-                                <option value="CrossFit">CrossFit</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Date *</label>
-                            <input type="date" name="date_cours" id="courseDate" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Heure *</label>
-                            <input type="time" id="courseTime" name="heure_cours" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Durée (minutes) *</label>
-                            <input type="number" id="courseDuration" name="duree_cours" min="15" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Participants Max *</label>
-                            <input type="number" id="courseMaxParticipants" name="max_participants" min="1" required>
-                        </div>
+                <form id="courseForm" action="<?= $edit_cours_id ? 'edit.php' : 'form_handling1.php' ?>" method="POST">
+                <?php if ($edit_cours_id): ?>
+                    <input type="hidden" name="id_cours" value="<?= $edit_cours_id ?>">
+                <?php endif; ?>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Nom du Cours *</label>
+                        <input type="text" name="nom_cours" id="courseName" value="<?= $nom_cours ?>" required>
                     </div>
+                    <div class="form-group">
+                        <label>Catégorie *</label>
+                        <select id="courseCategory" name="categories_cours" required>
+                            <option value="">Sélectionner...</option>
+                            <option <?=($categories_cours == "Yoga") ? 'selected' : ''?> value="Yoga">Yoga</option>
+                            <option <?=($categories_cours == "Musculation") ? 'selected' : ''?> value="Musculation">Musculation</option>
+                            <option <?=($categories_cours == "Cardio") ? 'selected' : ''?> value="Cardio">Cardio</option>
+                            <option <?=($categories_cours == "Pilates") ? 'selected' : ''?> value="Pilates">Pilates</option>
+                            <option <?=($categories_cours == "CrossFit") ? 'selected' : ''?> value="CrossFit">CrossFit</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Date *</label>
+                        <input type="date" name="date_cours" id="courseDate" value="<?= $date_cours ?>" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Heure *</label>
+                        <input type="time" id="courseTime" name="heure_cours" value="<?= $heure_cours ?>" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Durée (minutes) *</label>
+                        <input type="number" id="courseDuration" name="duree_cours" value="<?= $duree_cours ?>" min="15" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Participants Max *</label>
+                        <input type="number" id="courseMaxParticipants" name="max_participants" value="<?= $max_participants ?>" min="1" required>
+                    </div>
+                </div>
+                
+                <?php if ($edit_cours_id): ?>
+                    <button type="submit" name="modifier" class="btn btn-primary">Mettre à Jour</button>
+                    <a href="index.php" class="btn btn-secondary">Annuler</a>
+                <?php else: ?>
                     <button type="submit" class="btn btn-primary">Ajouter le Cours</button>
-                    <button type="button" class="btn btn-secondary">Annuler</button>
-                </form>
-            </div>
+                    <button type="button" class="btn btn-secondary" onclick="resetCourseForm()">Annuler</button>
+                <?php endif; ?>
+            </form>
+        </div>
 
             <div class="table-container">
                 <div class="form-title"><i class="fas fa-list"></i> Liste des Cours</div>
@@ -612,7 +623,7 @@
                     </thead>
                     <tbody id="coursesTable">
                         <?php foreach($result_cours as $res) :?>
-                         <tr>
+                        <tr>
                             <td><?php echo $res["nom_cours"];?></td>
                             <td><?php echo $res["categories_cours"];?></td>
                             <td><?php echo $res["date_cours"];?></td>
@@ -620,7 +631,7 @@
                             <td><?php echo $res["duree_cours"];?></td>
                             <td><?php echo $res["max_participants"];?></td>
                             <td class="action-btns">
-                                    <a href="edit_cours.php?edit_cours_id=<?= $res['id_cours']?>" class="btn-edit"><i class="fas fa-edit"></i> Modifier</a>
+                                    <a href="?edit_cours_id=<?= $res['id_cours']?>" name="modifier" class="btn-edit"><i class="fas fa-edit"></i> Modifier</a>
                                     <a href="delete.php?delete_cours_id=<?= $res['id_cours']?>" class="btn-delete"><i class="fas fa-trash"></i> Supprimer</a>
                             </td>
                         </tr>
@@ -635,41 +646,52 @@
             <div class="form-section">
                 <div class="form-title">
                     <i class="fas fa-plus-circle"></i>
-                    Ajouter un Nouvel Équipement
+                    <?= $edit_equipement_id ? "Modifier l'Équipement" : "Ajouter un Nouvel Équipement" ?>
                 </div>
-                <form id="equipmentForm" action="form_handling2.php" method="post">
+                <form id="equipmentForm" action="<?= $edit_equipement_id ? 'edit.php' : 'form_handling2.php' ?>" method="post">
+                    
+                    <?php if ($edit_equipement_id): ?>
+                        <input type="hidden" name="id_equipements" value="<?= $edit_equipement_id ?>">
+                    <?php endif; ?>
+
                     <div class="form-grid">
                         <div class="form-group">
                             <label>Nom de l'Équipement *</label>
-                            <input type="text" name="nom_equipements" id="equipmentName" required>
+                            <input type="text" name="nom_equipements" id="equipmentName" value="<?= $nom_equipements ?>" required>
                         </div>
                         <div class="form-group">
                             <label>Type *</label>
                             <select id="equipmentType" name="type_equipements" required>
                                 <option value="">Sélectionner...</option>
-                                <option value="Tapis de course">Tapis de course</option>
-                                <option value="Haltères">Haltères</option>
-                                <option value="Ballons">Ballons</option>
-                                <option value="Vélo">Vélo</option>
-                                <option value="Rameur">Rameur</option>
+                                <option <?=($type_equipements == "Tapis de course") ? 'selected' : ''?> value="Tapis de course">Tapis de course</option>
+                                <option <?=($type_equipements == "Haltères") ? 'selected' : ''?> value="Haltères">Haltères</option>
+                                <option <?=($type_equipements == "Ballons") ? 'selected' : ''?> value="Ballons">Ballons</option>
+                                <option <?=($type_equipements == "Vélo") ? 'selected' : ''?> value="Vélo">Vélo</option>
+                                <option <?=($type_equipements == "Rameur") ? 'selected' : ''?> value="Rameur">Rameur</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label>Quantité Disponible *</label>
-                            <input type="number" id="equipmentQuantity" name="quantity_equipements" min="0" required>
+                            <input type="number" id="equipmentQuantity" name="quantity_equipements" value="<?= $quantity_equipements ?>" min="0" required>
                         </div>
                         <div class="form-group">
                             <label>État *</label>
                             <select id="equipmentState" name="etat_equipements" required>
                                 <option value="">Sélectionner...</option>
-                                <option value="Bon">Bon</option>
-                                <option value="Moyen">Moyen</option>
-                                <option value="À remplacer">À remplacer</option>
+                                <option <?=($etat_equipements == "Bon") ? 'selected' : ''?> value="Bon">Bon</option>
+                                <option <?=($etat_equipements == "Moyen") ? 'selected' : ''?> value="Moyen">Moyen</option>
+                                <option <?=($etat_equipements == "À remplacer") ? 'selected' : ''?> value="À remplacer">À remplacer</option>
                             </select>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary">Ajouter l'Équipement</button>
-                    <button type="button" class="btn btn-secondary" onclick="resetEquipmentForm()">Annuler</button>
+                    
+                    <?php if ($edit_equipement_id): ?>
+                        <button type="submit" name="modifier_equipement" class="btn btn-primary">Mettre à Jour</button>
+                        <a href="index.php" class="btn btn-secondary">Annuler</a>
+                    <?php else: ?>
+                        <button type="submit" class="btn btn-primary">Ajouter l'Équipement</button>
+                        <button type="button" class="btn btn-secondary" onclick="resetEquipmentForm()">Annuler</button>
+                    <?php endif; ?>
                 </form>
             </div>
 
@@ -686,7 +708,7 @@
                         </tr>
                     </thead>
                     <tbody id="equipmentTable">
-                         <?php foreach($result_equipements as $res) :?>
+                        <?php foreach($result_equipements as $res) :?>
                         <tr>
                             <td><?= $res["nom_equipements"];?></td>
                             <td><?= $res["type_equipements"];?></td>
@@ -694,12 +716,12 @@
                             <td><?= $res["etat_equipements"];?></td>
                             <td>
                                 <div class="action-btns">
-                                    <a href="edit_equipements.php?edit_equipements_id=<?= $res["id_equipements"]?>" class="btn-edit"><i class="fas fa-edit"></i> Modifier</a>
+                                    <a href="?edit_equipements_id=<?= $res['id_equipements']?>" class="btn-edit"><i class="fas fa-edit"></i> Modifier</a>
                                     <a href="delete.php?delete_equipements_id=<?= $res["id_equipements"]?>" class="btn-delete"><i class="fas fa-trash"></i> Supprimer</a>
                                 </div>
                             </td>
                         </tr>
-                         <?php endforeach;?>
+                        <?php endforeach;?>
                     </tbody>
                 </table>
             </div>
@@ -711,6 +733,7 @@
         let equipment = [];
         let editingCourseId = null;
         let editingEquipmentId = null;
+
 
         function showTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -860,11 +883,9 @@
             }
         } */
 
-        /* function resetCourseForm() {
+        function resetCourseForm() {
             document.getElementById('courseForm').reset();
-            editingCourseId = null;
-            document.querySelector('#courseForm .btn-primary').textContent = 'Ajouter le Cours';
-        } */
+        }
 
         function resetEquipmentForm() {
             document.getElementById('equipmentForm').reset();
