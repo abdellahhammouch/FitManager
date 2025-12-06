@@ -10,6 +10,12 @@ $duree_cours = "";
 $max_participants = "";
 $edit_cours_id = "";
 
+$nom_equipements = "";
+$type_equipements = "";
+$quantity_equipements = "";
+$etat_equipements = "";
+$edit_equipement_id = ""; 
+
 
 if (isset($_GET['edit_cours_id'])) {
     $edit_cours_id = intval($_GET['edit_cours_id']);
@@ -43,7 +49,7 @@ if (isset($_POST['modifier'])) {
             heure_cours='$heure_cours',
             duree_cours='$duree_cours',
             max_participants='$max_participants'  
-            WHERE id_cours=$id_cours";
+            where id_cours=$id_cours";
     
     if ($connect->query($update)) {
         header("Location: index.php");
@@ -53,11 +59,6 @@ if (isset($_POST['modifier'])) {
     }
 }
 
-$nom_equipements = "";
-$type_equipements = "";
-$quantity_equipements = "";
-$etat_equipements = "";
-$edit_equipement_id = ""; 
 
 if (isset($_GET['edit_equipements_id'])) {
     $edit_equipement_id = intval($_GET['edit_equipements_id']);
@@ -78,17 +79,17 @@ if (isset($_POST['modifier_equipement'])) {
     $quantity_equipements = $_POST["quantity_equipements"];
     $etat_equipements = $_POST["etat_equipements"];
 
-    $update = "UPDATE equipements SET 
+    $update = "update equipements set 
             nom_equipements='$nom_equipements',
             type_equipements='$type_equipements',
             quantity_equipements='$quantity_equipements',
             etat_equipements='$etat_equipements'  
-            WHERE id_equipements=$id_equipements";
+            where id_equipements=$id_equipements";
     
     if ($connect->query($update)) {
         header("Location: index.php");
         exit();
-    } else {
+    }else {
         echo "Error updating: " . $connect->error;
     }
 }

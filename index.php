@@ -594,13 +594,13 @@
                     </div>
                 </div>
                 
-                <?php if ($edit_cours_id): ?>
+                <?php if ($edit_cours_id){ ?>
                     <button type="submit" name="modifier" class="btn btn-primary">Mettre à Jour</button>
                     <a href="index.php" class="btn btn-secondary">Annuler</a>
-                <?php else: ?>
+                <?php }else{ ?>
                     <button type="submit" class="btn btn-primary">Ajouter le Cours</button>
                     <button type="button" class="btn btn-secondary" onclick="resetCourseForm()">Annuler</button>
-                <?php endif; ?>
+                <?php }; ?>
             </form>
         </div>
 
@@ -647,9 +647,9 @@
                 </div>
                 <form id="equipmentForm" action="<?= $edit_equipement_id ? 'edit.php' : 'form_handling2.php' ?>" method="post">
                     
-                    <?php if ($edit_equipement_id): ?>
+                    <?php if ($edit_equipement_id){ ?>
                         <input type="hidden" name="id_equipements" value="<?= $edit_equipement_id ?>">
-                    <?php endif; ?>
+                    <?php }; ?>
 
                     <div class="form-grid">
                         <div class="form-group">
@@ -682,13 +682,13 @@
                         </div>
                     </div>
                     
-                    <?php if ($edit_equipement_id): ?>
+                    <?php if ($edit_equipement_id){ ?>
                         <button type="submit" name="modifier_equipement" class="btn btn-primary">Mettre à Jour</button>
                         <a href="index.php" class="btn btn-secondary">Annuler</a>
-                    <?php else: ?>
+                    <?php }else{ ?>
                         <button type="submit" class="btn btn-primary">Ajouter l'Équipement</button>
                         <button type="button" class="btn btn-secondary" onclick="resetEquipmentForm()">Annuler</button>
-                    <?php endif; ?>
+                    <?php }; ?>
                 </form>
             </div>
 
@@ -726,11 +726,6 @@
     </div>
 
     <script>
-        let courses = [];
-        let equipment = [];
-        let editingCourseId = null;
-        let editingEquipmentId = null;
-
 
         function showTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -886,7 +881,6 @@
 
         function resetEquipmentForm() {
             document.getElementById('equipmentForm').reset();
-            editingEquipmentId = null;
             document.querySelector('#equipmentForm .btn-primary').textContent = "Ajouter l'Équipement";
         }
 
