@@ -281,7 +281,7 @@
             margin-bottom: 20px;
         }
 
-        .form-group {
+        .form_group {
             display: flex;
             flex-direction: column;
             gap: 8px;
@@ -561,11 +561,11 @@
                 <form id="courseForm" action="<?= $edit_cours_id ? 'edit.php' : 'form_handling1.php' ?>" method="POST">
                     <input type="hidden" name="id_cours" value="<?= $edit_cours_id ?>">
                 <div class="form-grid">
-                    <div class="form-group">
+                    <div class="form_group">
                         <label>Nom du Cours *</label>
                         <input type="text" name="nom_cours" id="courseName" value="<?= $nom_cours ?>" required>
                     </div>
-                    <div class="form-group">
+                    <div class="form_group">
                         <label>Catégorie *</label>
                         <select id="courseCategory" name="categories_cours" required>
                             <option value="">Sélectionner...</option>
@@ -576,19 +576,19 @@
                             <option <?=($categories_cours == "CrossFit") ? 'selected' : ''?> value="CrossFit">CrossFit</option>
                         </select>
                     </div>
-                    <div class="form-group">
+                    <div class="form_group">
                         <label>Date *</label>
                         <input type="date" name="date_cours" id="courseDate" value="<?= $date_cours ?>" required>
                     </div>
-                    <div class="form-group">
+                    <div class="form_group">
                         <label>Heure *</label>
                         <input type="time" id="courseTime" name="heure_cours" value="<?= $heure_cours ?>" required>
                     </div>
-                    <div class="form-group">
+                    <div class="form_group">
                         <label>Durée (minutes) *</label>
                         <input type="number" id="courseDuration" name="duree_cours" value="<?= $duree_cours ?>" min="15" required>
                     </div>
-                    <div class="form-group">
+                    <div class="form_group">
                         <label>Participants Max *</label>
                         <input type="number" id="courseMaxParticipants" name="max_participants" value="<?= $max_participants ?>" min="1" required>
                     </div>
@@ -652,11 +652,11 @@
                     <?php }; ?>
 
                     <div class="form-grid">
-                        <div class="form-group">
+                        <div class="form_group">
                             <label>Nom de l'Équipement *</label>
                             <input type="text" name="nom_equipements" id="equipmentName" value="<?= $nom_equipements ?>" required>
                         </div>
-                        <div class="form-group">
+                        <div class="form_group">
                             <label>Type *</label>
                             <select id="equipmentType" name="type_equipements" required>
                                 <option value="">Sélectionner...</option>
@@ -667,11 +667,11 @@
                                 <option <?=($type_equipements == "Rameur") ? 'selected' : ''?> value="Rameur">Rameur</option>
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="form_group">
                             <label>Quantité Disponible *</label>
                             <input type="number" id="equipmentQuantity" name="quantity_equipements" value="<?= $quantity_equipements ?>" min="0" required>
                         </div>
-                        <div class="form-group">
+                        <div class="form_group">
                             <label>État *</label>
                             <select id="equipmentState" name="etat_equipements" required>
                                 <option value="">Sélectionner...</option>
