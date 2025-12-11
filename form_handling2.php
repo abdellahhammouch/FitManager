@@ -22,7 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         exit;
     }
 
-    header("Location: index.php"); // remove space before :
+    header("Location: index.php");
     exit;
 }
 ?>

@@ -8,12 +8,52 @@
     $data_cours = $result_cours->fetch_assoc();
     $result_equipements = $connect->query("select * from equipements");
     $data_equipements = $result_equipements->fetch_assoc();
+    $query_cours_par_categorie = "select categories_cours, COUNT(*) as nombre from cours group by categories_cours";
+    $result_cours_par_categorie = $connect->query($query_cours_par_categorie);
     $count_cours = $connect->query("select count(id_cours) from cours");
     $data_count_cours = $count_cours->fetch_column();
     $count_equipements = $connect->query("select count(id_equipements) from equipements");
     $data_count_equipements = $count_equipements->fetch_column();
     $participants_totaux = $connect->query("select sum(max_participants) from cours");
     $data_participants = $participants_totaux->fetch_column();
+    $equipements_disponibles = $connect->query("select count(nom_equipements) as equipements_disponibles from equipements where etat_equipements = 'Bon' or etat_equipements = 'Moyen'");
+    $data_equipements_disponibles = $equipements_disponibles->fetch_column();
+
+    // Créer un tableau avec toutes les catégories et initialiser à 0
+    $categories_cours_data = [
+        'Yoga' => 0,
+        'Musculation' => 0,
+        'Cardio' => 0,
+        'Pilates' => 0,
+        'CrossFit' => 0
+    ];
+
+    // Remplir avec les données réelles
+    while ($row = $result_cours_par_categorie->fetch_assoc()) {
+        $categories_cours_data[$row['categories_cours']] = $row['nombre'];
+    }
+
+    // Requête pour compter les équipements par type
+    $query_equipements_par_type = "select type_equipements, sum(quantity_equipements) as total from equipements group by type_equipements";
+    $result_equipements_par_type = $connect->query($query_equipements_par_type);
+
+    // Créer un tableau avec tous les types et initialiser à 0
+    $types_equipements_data = [
+        'Tapis de course' => 0,
+        'Haltères' => 0,
+        'Ballons' => 0,
+        'Vélo' => 0,
+        'Rameur' => 0
+    ];
+
+    // Remplir avec les données réelles
+    while ($row = $result_equipements_par_type->fetch_assoc()) {
+        $types_equipements_data[$row['type_equipements']] = $row['total'];
+    }
+
+    // Calculer la valeur maximale pour normaliser les hauteurs des barres
+    $max_cours = max($categories_cours_data);
+    $max_equipements = max($types_equipements_data);
 ?>
 
 
@@ -202,10 +242,9 @@
 
         .chart-bars {
             display: flex;
-            align-items: flex-end;
-            gap: 50px;
+            gap: 10px;
             height: 350px;
-            margin-top: 40px;
+            padding-top: 40px;
         }
 
         .bar-group {
@@ -516,6 +555,7 @@
                 <button class="tab-btn active" onclick="showTab('dashboard')"><i class="fas fa-chart-line"></i> Dashboard</button>
                 <button class="tab-btn" onclick="showTab('courses')"><i class="fas fa-running"></i> Gestion des Cours</button>
                 <button class="tab-btn" onclick="showTab('equipment')"><i class="fas fa-cogs"></i> Gestion des Équipements</button>
+                <button class="tab-btn" onclick="showTab('Association')"><i class="fas fa-cogs"></i> Gestion des Équipements</button>
             </div>
         </header>
 
@@ -536,18 +576,42 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">Équipements Disponibles</div>
-                    <div class="stat-number" id="availableEquipment">0</div>
+                    <div class="stat-number" id="availableEquipment"><?= $data_equipements_disponibles?></div>
                 </div>
             </div>
 
             <div class="chart-container">
                 <div class="chart-title"><i class="fas fa-chart-bar"></i> Répartition des Cours par Type</div>
-                <div class="chart-bars" id="coursesChart"></div>
+                <div class="chart-bars" id="coursesChart">
+                    <?php foreach ($categories_cours_data as $categorie => $nombre): ?>
+                        <?php 
+                            $height = $max_cours > 0 ? ($nombre / $max_cours) * 100 : 0;
+                        ?>
+                        <div class="bar-group">
+                            <div class="bar" style="height: <?= $height ?>%">
+                                <div class="bar-value"><?= $nombre ?></div>
+                            </div>
+                            <div class="bar-label"><?= $categorie ?></div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
             </div>
 
             <div class="chart-container">
                 <div class="chart-title"><i class="fas fa-tools"></i> Répartition des Équipements par Type</div>
-                <div class="chart-bars" id="equipmentChart"></div>
+                <div class="chart-bars" id="equipmentChart">
+                    <?php foreach ($types_equipements_data as $type => $quantite): ?>
+                        <?php 
+                            $height = $max_equipements > 0 ? ($quantite / $max_equipements) * 100 : 0;
+                        ?>
+                        <div class="bar-group">
+                            <div class="bar" style="height: <?= $height ?>%">
+                                <div class="bar-value"><?= $quantite ?></div>
+                            </div>
+                            <div class="bar-label"><?= $type ?></div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
             </div>
         </div>
 
@@ -620,18 +684,18 @@
                     </thead>
                     <tbody id="coursesTable">
                         <?php foreach($result_cours as $res) :?>
-                        <tr>
-                            <td><?php echo $res["nom_cours"];?></td>
-                            <td><?php echo $res["categories_cours"];?></td>
-                            <td><?php echo $res["date_cours"];?></td>
-                            <td><?php echo $res["heure_cours"];?></td>
-                            <td><?php echo $res["duree_cours"];?></td>
-                            <td><?php echo $res["max_participants"];?></td>
-                            <td class="action-btns">
-                                    <a href="?edit_cours_id=<?= $res['id_cours']?>" name="modifier" class="btn-edit"><i class="fas fa-edit"></i> Modifier</a>
-                                    <a href="delete.php?delete_cours_id=<?= $res['id_cours']?>" class="btn-delete"><i class="fas fa-trash"></i> Supprimer</a>
-                            </td>
-                        </tr>
+                            <tr>
+                                <td><?php echo $res["nom_cours"];?></td>
+                                <td><?php echo $res["categories_cours"];?></td>
+                                <td><?php echo $res["date_cours"];?></td>
+                                <td><?php echo $res["heure_cours"];?></td>
+                                <td><?php echo $res["duree_cours"];?></td>
+                                <td><?php echo $res["max_participants"];?></td>
+                                <td class="action-btns">
+                                        <a href="?edit_cours_id=<?= $res['id_cours']?>" name="modifier" class="btn-edit"><i class="fas fa-edit"></i> Modifier</a>
+                                        <a href="delete.php?delete_cours_id=<?= $res['id_cours']?>" class="btn-delete"><i class="fas fa-trash"></i> Supprimer</a>
+                                </td>
+                            </tr>
                         <?php endforeach;?>
                     </tbody>
                 </table>

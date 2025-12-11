@@ -14,7 +14,7 @@ $nom_equipements = "";
 $type_equipements = "";
 $quantity_equipements = "";
 $etat_equipements = "";
-$edit_equipement_id = ""; 
+$edit_equipement_id = "";
 
 
 if (isset($_GET['edit_cours_id'])) {
