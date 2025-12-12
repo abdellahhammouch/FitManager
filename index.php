@@ -18,6 +18,22 @@
     $data_participants = $participants_totaux->fetch_column();
     $equipements_disponibles = $connect->query("select count(nom_equipements) as equipements_disponibles from equipements where etat_equipements = 'Bon' or etat_equipements = 'Moyen'");
     $data_equipements_disponibles = $equipements_disponibles->fetch_column();
+    $query_associations = "
+        SELECT 
+            c.id_cours,
+            c.nom_cours,
+            c.date_cours,
+            c.heure_cours,
+            GROUP_CONCAT(e.nom_equipements SEPARATOR ', ') as equipements_noms,
+            GROUP_CONCAT(e.id_equipements) as equipements_ids
+        FROM cours c
+        LEFT JOIN cours_equipements ce ON c.id_cours = ce.id_c
+        LEFT JOIN equipements e ON ce.id_e = e.id_equipements
+        GROUP BY c.id_cours
+        HAVING COUNT(ce.id_e) > 0
+        ORDER BY c.date_cours DESC, c.heure_cours DESC
+    ";
+    $result_associations = $connect->query($query_associations);
 
     // Créer un tableau avec toutes les catégories et initialiser à 0
     $categories_cours_data = [
@@ -59,7 +75,7 @@
 
 
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -555,7 +571,7 @@
                 <button class="tab-btn active" onclick="showTab('dashboard')"><i class="fas fa-chart-line"></i> Dashboard</button>
                 <button class="tab-btn" onclick="showTab('courses')"><i class="fas fa-running"></i> Gestion des Cours</button>
                 <button class="tab-btn" onclick="showTab('equipment')"><i class="fas fa-cogs"></i> Gestion des Équipements</button>
-                <button class="tab-btn" onclick="showTab('Association')"><i class="fas fa-cogs"></i> Gestion des Équipements</button>
+                <button class="tab-btn" onclick="showTab('Association')"><i class="fas fa-arrows-to-dot"></i> Associations</button>
             </div>
         </header>
 
@@ -788,6 +804,103 @@
             </div>
         </div>
     </div>
+    <div id="Association" class="tab-content">
+            <div class="form-section">
+                <div class="form-title">
+                    <i class="fas fa-link"></i>
+                    Créer une Association Cours-Équipement
+                </div>
+                <form id="associationForm" action="form_handling3.php" method="POST">
+                    <div class="form-grid">
+                        <div class="form_group" style="grid-column: 1 / -1;">
+                            <label>Sélectionner un cours *</label>
+                            <select name="id_cours" id="associationCourse" required>
+                                <option value="">Choisir un cours...</option>
+                                <?php 
+                                $result_cours_temp = $connect->query("select * from cours order by date_cours desc");
+                                foreach($result_cours_temp as $cours): 
+                                ?>
+                                    <option value="<?= $cours['id_cours'] ?>">
+                                        <?= $cours['nom_cours'] ?> - <?= $cours['date_cours'] ?> <?= $cours['heure_cours'] ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        
+                        <div class="form_group" style="grid-column: 1 / -1;">
+                            <label>Sélectionner les équipements *</label>
+                            <div style="background: #000; border: 2px solid #333; border-radius: 8px; padding: 20px; max-height: 300px; overflow-y: auto;">
+                                <?php 
+                                $result_equipements_temp = $connect->query("select * from equipements order by type_equipements, nom_equipements");
+                                foreach($result_equipements_temp as $equip): 
+                                ?>
+                                    <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; cursor: pointer; color: #ccc; text-transform: none; font-size: 1em;">
+                                        <input type="checkbox" name="equipements[]" value="<?= $equip['id_equipements'] ?>" 
+                                                style="width: 20px; height: 20px; cursor: pointer; accent-color: #ff6b00;">
+                                        <span><?= $equip['nom_equipements'] ?> (<?= $equip['type_equipements'] ?>)</span>
+                                    </label>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" name="creer_association" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Créer l'association
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="resetAssociationForm()">Annuler</button>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <div class="form-title"><i class="fas fa-list"></i> Liste des Associations</div>
+                
+                <?php if ($result_associations->num_rows > 0): ?>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 30px; padding: 20px 0;">
+                        <?php foreach($result_associations as $assoc): ?>
+                            <div style="background: #1a1a1a; border: 2px solid #333; border-radius: 12px; padding: 25px; transition: all 0.3s ease;">
+                                <h3 style="color: #ff6b00; font-size: 1.3em; margin-bottom: 15px; font-weight: 900; text-transform: uppercase;">
+                                    <i class="fas fa-running"></i> <?= $assoc['nom_cours'] ?>
+                                </h3>
+                                
+                                <div style="display: flex; gap: 20px; margin-bottom: 20px; color: #999; font-size: 0.9em;">
+                                    <span><i class="fas fa-calendar"></i> <?= date('d/m/Y', strtotime($assoc['date_cours'])) ?></span>
+                                    <span><i class="fas fa-clock"></i> <?= date('H:i', strtotime($assoc['heure_cours'])) ?></span>
+                                </div>
+                                
+                                <div style="margin-bottom: 20px;">
+                                    <p style="color: #999; font-size: 0.85em; font-weight: 700; text-transform: uppercase; margin-bottom: 10px;">
+                                        Équipements associés:
+                                    </p>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                        <?php 
+                                        $equipements_noms = explode(', ', $assoc['equipements_noms']);
+                                        foreach($equipements_noms as $equip_nom): 
+                                        ?>
+                                            <span style="background: rgba(255, 107, 0, 0.2); color: #ff6b00; padding: 6px 12px; border-radius: 6px; font-size: 0.85em; font-weight: 700; border: 1px solid #ff6b00;">
+                                                <?= $equip_nom ?>
+                                            </span>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                                
+                                <a href="form_handling3.php?delete_association_id=<?= $assoc['id_cours'] ?>" 
+                                    class="btn-delete" 
+                                    onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette association ?')"
+                                    style="width: 100%; text-align: center; display: inline-block; text-decoration: none;">
+                                    <i class="fas fa-trash"></i> Supprimer
+                                </a>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <div style="text-align: center; padding: 60px 20px; color: #666;">
+                        <i class="fas fa-inbox" style="font-size: 4em; margin-bottom: 20px; opacity: 0.3;"></i>
+                        <p style="font-size: 1.2em; font-weight: 700;">Aucune association créée pour le moment</p>
+                        <p style="margin-top: 10px;">Commencez par créer une association entre un cours et des équipements</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
 
     <script>
 
@@ -796,13 +909,35 @@
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             
             document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
             
-            if (tabName === 'dashboard') {
-                updateDashboard();
-            }
+            // Trouver le bouton correspondant et l'activer
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => {
+                if (btn.textContent.includes('Dashboard') && tabName === 'dashboard') btn.classList.add('active');
+                if (btn.textContent.includes('Cours') && tabName === 'courses') btn.classList.add('active');
+                if (btn.textContent.includes('Équipements') && tabName === 'equipment') btn.classList.add('active');
+            });
         }
+        // Détecter si on est en mode édition et rediriger vers le bon onglet
+        window.addEventListener('DOMContentLoaded', function() {
+            // Vérifier si on édite un cours
+            const editCoursId = "<?= $edit_cours_id ?>";
+            if (editCoursId) {
+                showTab('courses');
+                return;
+            }
+            
+            // Vérifier si on édite un équipement
+            const editEquipementId = "<?= $edit_equipement_id ?>";
+            if (editEquipementId) {
+                showTab('equipment');
+                return;
+            }
+        });
 
+        function resetAssociationForm() {
+            document.getElementById('associationForm').reset();
+        }
         /* document.getElementById('courseForm').addEventListener('submit', function(e) {
             e.preventDefault();
         
