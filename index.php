@@ -2,6 +2,7 @@
     ini_set('display_errors', 1);
     ini_set('display_startup_errors', 1);
     error_reporting(E_ALL);
+    require "auth_check.php";
     include "edit.php";
     require "connect.php";
     $result_cours = $connect->query("select * from cours");
@@ -19,19 +20,19 @@
     $equipements_disponibles = $connect->query("select count(nom_equipements) as equipements_disponibles from equipements where etat_equipements = 'Bon' or etat_equipements = 'Moyen'");
     $data_equipements_disponibles = $equipements_disponibles->fetch_column();
     $query_associations = "
-        SELECT 
+        select 
             c.id_cours,
             c.nom_cours,
             c.date_cours,
             c.heure_cours,
-            GROUP_CONCAT(e.nom_equipements SEPARATOR ', ') as equipements_noms,
-            GROUP_CONCAT(e.id_equipements) as equipements_ids
-        FROM cours c
-        LEFT JOIN cours_equipements ce ON c.id_cours = ce.id_c
-        LEFT JOIN equipements e ON ce.id_e = e.id_equipements
-        GROUP BY c.id_cours
-        HAVING COUNT(ce.id_e) > 0
-        ORDER BY c.date_cours DESC, c.heure_cours DESC
+            group_concat(e.nom_equipements SEPARATOR ', ') as equipements_noms,
+            group_concat(e.id_equipements) as equipements_ids
+        from cours c
+        left join cours_equipements ce on c.id_cours = ce.id_c
+        left join equipements e on ce.id_e = e.id_equipements
+        group by c.id_cours
+        having count(ce.id_e) > 0
+        order by c.date_cours DESC, c.heure_cours DESC
     ";
     $result_associations = $connect->query($query_associations);
 
@@ -148,6 +149,11 @@
             border-bottom: 3px solid transparent;
         }
 
+        a[href="logout.php"]:hover {
+            background: #bb2d3b !important;
+            box-shadow: 0 0 20px rgba(220, 53, 69, 0.5);
+            transform: translateY(-2px);
+        }
         .tab-btn i {
             margin-right: 8px;
         }
@@ -566,7 +572,18 @@
 <body>
     <div class="container">
         <header>
-            <h1><i class="fas fa-dumbbell"></i> FitPro Manager</h1>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h1><i class="fas fa-dumbbell"></i> FitPro Manager</h1>
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <div style="text-align: right;">
+                        <p style="color: #999; font-size: 0.8em; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">Bienvenue</p>
+                        <p style="color: #ff6b00; font-size: 1.1em; font-weight: 900;"><?= $current_user['full_name'] ?></p>
+                    </div>
+                    <a href="logout.php" style="background: #dc3545; color: white; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; font-size: 0.9em; transition: all 0.3s ease; border: 2px solid #dc3545;">
+                        <i class="fas fa-sign-out-alt"></i> Déconnexion
+                    </a>
+                </div>
+            </div>
             <div class="nav-tabs">
                 <button class="tab-btn active" onclick="showTab('dashboard')"><i class="fas fa-chart-line"></i> Dashboard</button>
                 <button class="tab-btn" onclick="showTab('courses')"><i class="fas fa-running"></i> Gestion des Cours</button>

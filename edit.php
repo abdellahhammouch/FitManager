@@ -1,6 +1,7 @@
 <?php
 
 require "connect.php";
+require "auth_check.php";
 
 $nom_cours = "";
 $categories_cours = "";
