@@ -9,36 +9,49 @@ if (isset($_SESSION['user_id'])) {
 }
 
 $error = "";
+$success = "";
 
-// Traiter le formulaire de CONNEXION (pas inscription !)
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
-    $username = $_POST['username'];
+// Traiter le formulaire d'inscription
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['signup'])) {
+    $username = trim($_POST['username']);
+    $email = trim($_POST['email']);
+    $full_name = trim($_POST['full_name']);
     $password = $_POST['password'];
+    $confirm_password = $_POST['confirm_password'];
     
-    // Rechercher l'utilisateur
-    $stmt = $connect->prepare("SELECT * FROM users WHERE username = ? OR email = ?");
-    $stmt->bind_param("ss", $username, $username);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    
-    if ($result->num_rows === 1) {
-        $user = $result->fetch_assoc();
-        
-        // Vérifier le mot de passe
-        if (password_verify($password, $user['password'])) {
-            // Connexion réussie
-            $_SESSION['user_id'] = $user['id_user'];
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['email'] = $user['email'];
-            $_SESSION['full_name'] = $user['full_name'];
-            
-            header("Location: index.php");
-            exit();
-        } else {
-            $error = "Nom d'utilisateur ou mot de passe incorrect";
-        }
+    // Validation
+    if (strlen($username) < 3) {
+        $error = "Le nom d'utilisateur doit contenir au moins 3 caractères";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = "Email invalide";
+    } elseif (strlen($password) < 6) {
+        $error = "Le mot de passe doit contenir au moins 6 caractères";
+    } elseif ($password !== $confirm_password) {
+        $error = "Les mots de passe ne correspondent pas";
     } else {
-        $error = "Nom d'utilisateur ou mot de passe incorrect";
+        // Vérifier si l'utilisateur existe déjà
+        $stmt = $connect->prepare("SELECT id_user FROM users WHERE username = ? OR email = ?");
+        $stmt->bind_param("ss", $username, $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows > 0) {
+            $error = "Ce nom d'utilisateur ou cet email existe déjà";
+        } else {
+            // Hasher le mot de passe
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+            
+            // Insérer le nouvel utilisateur
+            $stmt = $connect->prepare("INSERT INTO users (username, email, full_name, password) VALUES (?, ?, ?, ?)");
+            $stmt->bind_param("ssss", $username, $email, $full_name, $hashed_password);
+            
+            if ($stmt->execute()) {
+                $success = "Compte créé avec succès ! Redirection...";
+                header("refresh:2;url=login.php");
+            } else {
+                $error = "Erreur lors de la création du compte";
+            }
+        }
     }
 }
 ?>
@@ -48,7 +61,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion - FitPro Manager</title>
+    <title>Inscription - FitPro Manager</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -73,7 +86,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
             border-radius: 20px;
             padding: 50px;
             width: 100%;
-            max-width: 450px;
+            max-width: 500px;
             box-shadow: 0 20px 60px rgba(255, 107, 0, 0.3);
         }
 
@@ -115,8 +128,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
             font-weight: 700;
         }
 
+        .success-message {
+            background: rgba(40, 167, 69, 0.2);
+            border: 2px solid #28a745;
+            color: #28a745;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 700;
+        }
+
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .form-group label {
@@ -209,9 +233,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
 <body>
     <div class="auth-container">
         <div class="auth-header">
-            <i class="fas fa-dumbbell"></i>
-            <h1>Connexion</h1>
-            <p>Accédez à votre compte FitPro Manager</p>
+            <i class="fas fa-user-plus"></i>
+            <h1>Inscription</h1>
+            <p>Créez votre compte FitPro Manager</p>
         </div>
 
         <?php if ($error): ?>
@@ -220,12 +244,34 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
             </div>
         <?php endif; ?>
 
+        <?php if ($success): ?>
+            <div class="success-message">
+                <i class="fas fa-check-circle"></i> <?= $success ?>
+            </div>
+        <?php endif; ?>
+
         <form method="POST" action="">
             <div class="form-group">
-                <label>Nom d'utilisateur ou Email</label>
+                <label>Nom complet</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-id-card"></i>
+                    <input type="text" name="full_name" required placeholder="Entrez votre nom complet">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Nom d'utilisateur</label>
                 <div class="input-wrapper">
                     <i class="fas fa-user"></i>
-                    <input type="text" name="username" required placeholder="Entrez votre nom d'utilisateur">
+                    <input type="text" name="username" required placeholder="Choisissez un nom d'utilisateur">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Email</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" name="email" required placeholder="Entrez votre email">
                 </div>
             </div>
 
@@ -233,17 +279,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
                 <label>Mot de passe</label>
                 <div class="input-wrapper">
                     <i class="fas fa-lock"></i>
-                    <input type="password" name="password" required placeholder="Entrez votre mot de passe">
+                    <input type="password" name="password" required placeholder="Choisissez un mot de passe">
                 </div>
             </div>
 
-            <button type="submit" name="login" class="btn">
-                <i class="fas fa-sign-in-alt"></i> Se connecter
+            <div class="form-group">
+                <label>Confirmer le mot de passe</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="confirm_password" required placeholder="Confirmez le mot de passe">
+                </div>
+            </div>
+
+            <button type="submit" name="signup" class="btn">
+                <i class="fas fa-user-plus"></i> Créer mon compte
             </button>
         </form>
 
         <div class="auth-footer">
-            <p>Pas encore de compte ? <a href="signup.php">Créer un compte</a></p>
+            <p>Déjà un compte ? <a href="login.php">Se connecter</a></p>
         </div>
     </div>
 </body>
