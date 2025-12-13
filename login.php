@@ -2,31 +2,18 @@
 session_start();
 require "connect.php";
 
-// Si déjà connecté, rediriger vers index
-if (isset($_SESSION['user_id'])) {
-    header("Location: index.php");
-    exit();
-}
 
 $error = "";
 
-// Traiter le formulaire de CONNEXION (pas inscription !)
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
     $username = $_POST['username'];
     $password = $_POST['password'];
     
-    // Rechercher l'utilisateur
-    $stmt = $connect->prepare("SELECT * FROM users WHERE username = ? OR email = ?");
-    $stmt->bind_param("ss", $username, $username);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    
-    if ($result->num_rows === 1) {
-        $user = $result->fetch_assoc();
-        
-        // Vérifier le mot de passe
-        if (password_verify($password, $user['password'])) {
-            // Connexion réussie
+    $sql = $connect->query("select * from users where username = '$username' or email = '$username'");
+
+    if ($sql) {
+        $user = $sql->fetch_assoc();
+        if ($user["password"] === $password) {
             $_SESSION['user_id'] = $user['id_user'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['email'] = $user['email'];
@@ -34,7 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
             
             header("Location: index.php");
             exit();
-        } else {
+        }else {
             $error = "Nom d'utilisateur ou mot de passe incorrect";
         }
     } else {
