@@ -2,16 +2,11 @@
 session_start();
 require "connect.php";
 
-// Si déjà connecté, rediriger vers index
-if (isset($_SESSION['user_id'])) {
-    header("Location: index.php");
-    exit();
-}
 
 $error = "";
 $success = "";
 
-// Traiter le formulaire d'inscription
+
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['signup'])) {
     $username = trim($_POST['username']);
     $email = trim($_POST['email']);
@@ -19,7 +14,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['signup'])) {
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
     
-    // Validation
     if (strlen($username) < 3) {
         $error = "Le nom d'utilisateur doit contenir au moins 3 caractères";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -29,25 +23,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['signup'])) {
     } elseif ($password !== $confirm_password) {
         $error = "Les mots de passe ne correspondent pas";
     } else {
-        // Vérifier si l'utilisateur existe déjà
-        $stmt = $connect->prepare("SELECT id_user FROM users WHERE username = ? OR email = ?");
-        $stmt->bind_param("ss", $username, $email);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
+
+        $sql = $connect->query("select id_user from users where username = '$username' or email = '$email'");
+        $result = $sql->fetch_assoc();
         if ($result->num_rows > 0) {
             $error = "Ce nom d'utilisateur ou cet email existe déjà";
         } else {
-            // Hasher le mot de passe
-            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
             
-            // Insérer le nouvel utilisateur
-            $stmt = $connect->prepare("INSERT INTO users (username, email, full_name, password) VALUES (?, ?, ?, ?)");
-            $stmt->bind_param("ssss", $username, $email, $full_name, $hashed_password);
-            
-            if ($stmt->execute()) {
+            $sql = $connect->query("insert into users (username, email, full_name, password) values ('$username', '$email', '$full_name', '$password')");
+            if ($sql) {
                 $success = "Compte créé avec succès ! Redirection...";
-                header("refresh:2;url=login.php");
+                header("Location: login.php");
+                exit;
             } else {
                 $error = "Erreur lors de la création du compte";
             }
