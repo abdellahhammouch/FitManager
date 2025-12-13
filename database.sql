@@ -26,11 +26,11 @@ create table cours_equipements(
     foreign key(id_c) references cours(id_cours),
     foreign key (id_e) references equipements(id_equipements)
 );
-CREATE TABLE users (
-    id_user INT PRIMARY KEY AUTO_INCREMENT,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    full_name VARCHAR(100),
-    date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+create table users (
+    id_user INT primary key AUTO_INCREMENT,
+    username varchar(50) unique not null,
+    email varchar(100) unique not null,
+    password varchar(255) not null,
+    full_name varchar(100),
+    date_created timestamp default current_timestamp
 );

@@ -13,8 +13,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $etat_equipements = $_POST["etat_equipements"];
 
     $result = $connect->query("
-        INSERT INTO equipements (nom_equipements, type_equipements, quantity_equipements, etat_equipements)
-        VALUES ('$nom_equipements', '$type_equipements', $quantity_equipements, '$etat_equipements')
+        insert into equipements (nom_equipements, type_equipements, quantity_equipements, etat_equipements)
+        values ('$nom_equipements', '$type_equipements', $quantity_equipements, '$etat_equipements')
     ");
 
     if (!$result) {
