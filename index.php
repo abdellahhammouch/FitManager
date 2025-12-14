@@ -9,8 +9,7 @@
     $data_cours = $result_cours->fetch_assoc();
     $result_equipements = $connect->query("select * from equipements");
     $data_equipements = $result_equipements->fetch_assoc();
-    $query_cours_par_categorie = "select categories_cours, COUNT(*) as nombre from cours group by categories_cours";
-    $result_cours_par_categorie = $connect->query($query_cours_par_categorie);
+    $result_cours_par_categorie = $connect->query("select categories_cours, count(*) as nombre from cours group by categories_cours");
     $count_cours = $connect->query("select count(id_cours) from cours");
     $data_count_cours = $count_cours->fetch_column();
     $count_equipements = $connect->query("select count(id_equipements) from equipements");
@@ -45,16 +44,13 @@
         'CrossFit' => 0
     ];
 
-    // Remplir avec les données réelles
     while ($row = $result_cours_par_categorie->fetch_assoc()) {
         $categories_cours_data[$row['categories_cours']] = $row['nombre'];
     }
 
-    // Requête pour compter les équipements par type
     $query_equipements_par_type = "select type_equipements, sum(quantity_equipements) as total from equipements group by type_equipements";
     $result_equipements_par_type = $connect->query($query_equipements_par_type);
 
-    // Créer un tableau avec tous les types et initialiser à 0
     $types_equipements_data = [
         'Tapis de course' => 0,
         'Haltères' => 0,
@@ -63,12 +59,10 @@
         'Rameur' => 0
     ];
 
-    // Remplir avec les données réelles
     while ($row = $result_equipements_par_type->fetch_assoc()) {
         $types_equipements_data[$row['type_equipements']] = $row['total'];
     }
 
-    // Calculer la valeur maximale pour normaliser les hauteurs des barres
     $max_cours = max($categories_cours_data);
     $max_equipements = max($types_equipements_data);
 ?>
@@ -588,7 +582,7 @@
                 <button class="tab-btn active" onclick="showTab('dashboard')"><i class="fas fa-chart-line"></i> Dashboard</button>
                 <button class="tab-btn" onclick="showTab('courses')"><i class="fas fa-running"></i> Gestion des Cours</button>
                 <button class="tab-btn" onclick="showTab('equipment')"><i class="fas fa-cogs"></i> Gestion des Équipements</button>
-                <button class="tab-btn" onclick="showTab('Association')"><i class="fas fa-arrows-to-dot"></i> Associations</button>
+                <button class="tab-btn" onclick="showTab('association')"><i class="fas fa-arrows-to-dot"></i> Associations</button>
             </div>
         </header>
 
@@ -821,7 +815,7 @@
             </div>
         </div>
     </div>
-    <div id="Association" class="tab-content">
+    <div id="association" class="tab-content">
             <div class="form-section">
                 <div class="form-title">
                     <i class="fas fa-link"></i>
@@ -927,24 +921,24 @@
             
             document.getElementById(tabName).classList.add('active');
             
-            // Trouver le bouton correspondant et l'activer
             const buttons = document.querySelectorAll('.tab-btn');
             buttons.forEach(btn => {
                 if (btn.textContent.includes('Dashboard') && tabName === 'dashboard') btn.classList.add('active');
                 if (btn.textContent.includes('Cours') && tabName === 'courses') btn.classList.add('active');
                 if (btn.textContent.includes('Équipements') && tabName === 'equipment') btn.classList.add('active');
+                if (btn.textContent.includes('Associations') && tabName === 'association') btn.classList.add('active');
             });
         }
-        // Détecter si on est en mode édition et rediriger vers le bon onglet
+
         window.addEventListener('DOMContentLoaded', function() {
-            // Vérifier si on édite un cours
+
             const editCoursId = "<?= $edit_cours_id ?>";
             if (editCoursId) {
                 showTab('courses');
                 return;
             }
             
-            // Vérifier si on édite un équipement
+
             const editEquipementId = "<?= $edit_equipement_id ?>";
             if (editEquipementId) {
                 showTab('equipment');
@@ -955,141 +949,6 @@
         function resetAssociationForm() {
             document.getElementById('associationForm').reset();
         }
-        /* document.getElementById('courseForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-        
-            const course = {
-                id: editingCourseId || Date.now(),
-                name: document.getElementById('courseName').value,
-                category: document.getElementById('courseCategory').value,
-                date: document.getElementById('courseDate').value,
-                time: document.getElementById('courseTime').value,
-                duration: document.getElementById('courseDuration').value,
-                maxParticipants: document.getElementById('courseMaxParticipants').value
-            };
-
-            if (editingCourseId) {
-                const index = courses.findIndex(c => c.id === editingCourseId);
-                courses[index] = course;
-                editingCourseId = null;
-            } else {
-                courses.push(course);
-            }
-
-            resetCourseForm();
-            renderCourses();
-            updateDashboard();
-        }); */
-
-        /* document.getElementById('equipmentForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const equip = {
-                id: editingEquipmentId || Date.now(),
-                name: document.getElementById('equipmentName').value,
-                type: document.getElementById('equipmentType').value,
-                quantity: document.getElementById('equipmentQuantity').value,
-                state: document.getElementById('equipmentState').value
-            };
-
-            if (editingEquipmentId) {
-                const index = equipment.findIndex(e => e.id === editingEquipmentId);
-                equipment[index] = equip;
-                editingEquipmentId = null;
-            } else {
-                equipment.push(equip);
-            }
-
-            resetEquipmentForm();
-            renderEquipment();
-            updateDashboard();
-        }); */
-
-        /* function renderCourses() {
-            const tbody = document.getElementById('coursesTable');
-            tbody.innerHTML = courses.map(course => `
-                <tr>
-                    <td>${course.name}</td>
-                    <td>${course.category}</td>
-                    <td>${course.date}</td>
-                    <td>${course.time}</td>
-                    <td>${course.duration} min</td>
-                    <td>${course.maxParticipants}</td>
-                    <td>
-                        <div class="action-btns">
-                            <button class="btn-edit" onclick="editCourse(${course.id})"><i class="fas fa-edit"></i> Modifier</button>
-                            <button class="btn-delete" onclick="deleteCourse(${course.id})"><i class="fas fa-trash"></i> Supprimer</button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-        } */
-
-        /* function renderEquipment() {
-            const tbody = document.getElementById('equipmentTable');
-            tbody.innerHTML = equipment.map(equip => {
-                let badgeClass = 'badge-success';
-                if (equip.state === 'Moyen') badgeClass = 'badge-warning';
-                if (equip.state === 'À remplacer') badgeClass = 'badge-danger';
-                
-                return `
-                    <tr>
-                        <td>${equip.name}</td>
-                        <td>${equip.type}</td>
-                        <td>${equip.quantity}</td>
-                        <td><span class="badge ${badgeClass}">${equip.state}</span></td>
-                        <td>
-                            <div class="action-btns">
-                                <button class="btn-edit" onclick="editEquipment(${equip.id})"><i class="fas fa-edit"></i> Modifier</button>
-                                <button class="btn-delete" onclick="deleteEquipment(${equip.id})"><i class="fas fa-trash"></i> Supprimer</button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        } */
-
-        /* function editCourse(id) {
-            const course = courses.find(c => c.id === id);
-            editingCourseId = id;
-            
-            document.getElementById('courseName').value = course.name;
-            document.getElementById('courseCategory').value = course.category;
-            document.getElementById('courseDate').value = course.date;
-            document.getElementById('courseTime').value = course.time;
-            document.getElementById('courseDuration').value = course.duration;
-            document.getElementById('courseMaxParticipants').value = course.maxParticipants;
-            
-            document.querySelector('#courseForm .btn-primary').textContent = 'Mettre à Jour';
-        } */
-
-        /* function deleteCourse(id) {
-            if (confirm('Êtes-vous sûr de vouloir supprimer ce cours ?')) {
-                courses = courses.filter(c => c.id !== id);
-                renderCourses();
-                updateDashboard();
-            }
-        } */
-
-        /* function editEquipment(id) {
-            const equip = equipment.find(e => e.id === id);
-            editingEquipmentId = id;
-            
-            document.getElementById('equipmentName').value = equip.name;
-            document.getElementById('equipmentType').value = equip.type;
-            document.getElementById('equipmentQuantity').value = equip.quantity;
-            document.getElementById('equipmentState').value = equip.state;
-            
-            document.querySelector('#equipmentForm .btn-primary').textContent = 'Mettre à Jour';
-        } */
-
-       /*  function deleteEquipment(id) {
-            if (confirm('Êtes-vous sûr de vouloir supprimer cet équipement ?')) {
-                equipment = equipment.filter(e => e.id !== id);
-                renderEquipment();
-                updateDashboard();
-            }
-        } */
 
         function resetCourseForm() {
             document.getElementById('courseForm').reset();
@@ -1100,65 +959,6 @@
             document.querySelector('#equipmentForm .btn-primary').textContent = "Ajouter l'Équipement";
         }
 
-        /* function updateDashboard() {
-            document.getElementById('totalCourses').textContent = courses.length;
-            document.getElementById('totalEquipment').textContent = equipment.length;
-            
-            const totalParticipants = courses.reduce((sum, c) => sum + parseInt(c.maxParticipants), 0);
-            document.getElementById('totalParticipants').textContent = totalParticipants;
-            
-            const availableEq = equipment.reduce((sum, e) => sum + parseInt(e.quantity), 0);
-            document.getElementById('availableEquipment').textContent = availableEq;
-            
-            renderCoursesChart();
-            renderEquipmentChart();
-        } */
-
-        /* function renderCoursesChart() {
-            const categories = {};
-            courses.forEach(c => {
-                categories[c.category] = (categories[c.category] || 0) + 1;
-            });
-            
-            const container = document.getElementById('coursesChart');
-            const maxValue = Math.max(...Object.values(categories), 1);
-            
-            container.innerHTML = Object.entries(categories).map(([cat, count]) => {
-                const height = (count / maxValue) * 100;
-                return `
-                    <div class="bar-group">
-                        <div class="bar" style="height: ${height}%">
-                            <div class="bar-value">${count}</div>
-                        </div>
-                        <div class="bar-label">${cat}</div>
-                    </div>
-                `;
-            }).join('');
-        } */
-
-        /* function renderEquipmentChart() {
-            const types = {};
-            equipment.forEach(e => {
-                types[e.type] = (types[e.type] || 0) + parseInt(e.quantity);
-            });
-            
-            const container = document.getElementById('equipmentChart');
-            const maxValue = Math.max(...Object.values(types), 1);
-            
-            container.innerHTML = Object.entries(types).map(([type, qty]) => {
-                const height = (qty / maxValue) * 100;
-                return `
-                    <div class="bar-group">
-                        <div class="bar" style="height: ${height}%">
-                            <div class="bar-value">${qty}</div>
-                        </div>
-                        <div class="bar-label">${type}</div>
-                    </div>
-                `;
-            }).join('');
-        } */
-
-        /* updateDashboard(); */
     </script>
 </body>
 </html>
